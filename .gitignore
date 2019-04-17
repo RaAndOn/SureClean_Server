@@ -3,5 +3,6 @@ bootstrap
 __pycache__
 sliding_window.py
 .vscode
-*.jpg
 .DS_Store
+litter-detection/svd_images/input/*
+litter-detection/svd_images/output/*
