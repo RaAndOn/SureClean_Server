@@ -1,6 +1,9 @@
 """
 Takes in images from the svd_images/input/ directory, finds the litter objects in the images
 and saves the output to the svd_images/output/ directory.
+
+Author: Atulya Ravishankar
+Updated: 04/17/2019
 """
 
 import pickle

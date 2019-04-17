@@ -1,3 +1,11 @@
+"""
+Manager SVM classifier
+- Training: uses training data and saves the model to disk.
+- Testing/Predicting: uses saved model to classify test image(s)
+
+Author: Atulya Ravishankar
+Updated: 04/17/2019
+"""
 
 import pickle
 import os
