@@ -57,7 +57,7 @@ def augment_dir(directory_in_name, directory_out_name):
                 numImages = aug_images.shape[3]
                 for i in range(numImages):
                     cur_img = aug_images[:, :, :, i]
-                    cv2.imwrite(directory_out_name + str(ctr) + "_bootstrapped_2.jpg", cur_img)
+                    cv2.imwrite(directory_out_name + str(ctr) + "_bootstrapped_3.jpg", cur_img)
                     ctr += 1
 
 if __name__ == "__main__":
