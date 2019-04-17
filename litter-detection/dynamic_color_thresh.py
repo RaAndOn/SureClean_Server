@@ -16,6 +16,9 @@ from matplotlib import colors
 
 from hog_svm import Dataset
 
+debugThresh = False
+debugFile = ""
+
 random.seed(0)
 data = Dataset(split=0.95)
 
@@ -32,7 +35,7 @@ class LitterDetector(object):
         self.blob_lower_size = 20
         self.blob_upper_size = 150
         self.patch_size = 70
-        self.img_width = 4000
+        self.img_width = 4000 
         self.img_height = 2250
         self.svm_coeffs = np.load("svm_coeffs.npy")
         self.svm_intercept = np.load("svm_intercept.npy")
@@ -113,6 +116,7 @@ class LitterDetector(object):
         return False
 
     def threshold_image(self, img_hsv, thresh):
+        global debugThresh, debugFile
         img_thresh = 255 - cv2.inRange(img_hsv, (thresh["H_min"], thresh["S_min"], thresh["V_min"]), (thresh["H_max"], thresh["S_max"], thresh["V_max"]))
         _, contours, _ = cv2.findContours(img_thresh, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE) 
         mask = np.ones(img_thresh.shape[:2], dtype="uint8") * 255
@@ -124,6 +128,8 @@ class LitterDetector(object):
                 cv2.drawContours(mask, [c], -1, 0, -1)
         image = cv2.bitwise_and(img_thresh, img_thresh, mask=mask).astype('uint8')
         output = (255*image).astype("uint8")
+        if (debugThresh):
+            cv2.imwrite("svd_images/thresh/"+ debugFile + "_thresh.jpg", img_thresh)
         return (output, valid_contours)
     
     def visualize_litter_locations(self, image, contours):
@@ -140,13 +146,14 @@ if __name__ == "__main__":
     fileNames = os.listdir("svd_images/input/")
     ld = LitterDetector()
     for file in fileNames:
-        if (file != ".DS_Store"):
-            print("Processing file %d of %d" %(idx, len(fileNames)-1))
+        if (file != ".DS_Store" and file != ".gitignore"):
+            debugFile = file[:-4]
+            print("Processing file %d of %d" %(idx, len(fileNames)-2))
             fileName = "svd_images/input/" + file
             (img_bgr, img_rgb, img_hsv) = ld.read_image_hsv(fileName)
             thresh = ld.compute_thresholds(img_hsv)
             (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
             output = ld.visualize_litter_locations(img_bgr, contours)
-            cv2.imwrite("svd_images/output/"+file[-4:]+"_result.jpg", output)
+            cv2.imwrite("svd_images/output/"+file[:-4]+"_result.jpg", output)
             idx += 1
     print("Done")

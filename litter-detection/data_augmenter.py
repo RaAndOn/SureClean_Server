@@ -48,14 +48,14 @@ def augment_dir(directory_in_name, directory_out_name):
                 numImages = aug_images.shape[3]
                 for i in range(numImages):
                     cur_img = aug_images[:, :, :, i]
-                    cv2.imwrite(directory_out_name + str(ctr) + ".jpg", cur_img)
+                    cv2.imwrite(directory_out_name + str(ctr) + "_bootstrapped_2.jpg", cur_img)
                     ctr += 1
 
 if __name__ == "__main__":
     # Modify the file paths below if you have the data stored locally
-    # Note that the data/ directory does not exist in the repository, it is just a placeholder path
+    # Note that the bootstrap/ directory does not exist in the repository, it is just a placeholder path
     # Contact Atulya to get the final dataset.
-    augment_dir("data/pos/", "/Users/AtulyaRavishankar/Documents/Dataset/pos_aug/")
-    augment_dir("data/neg/", "/Users/AtulyaRavishankar/Documents/Dataset/neg_aug/")
+    augment_dir("bootstrap/pos/", "/Users/AtulyaRavishankar/Documents/Dataset/pos_aug/")
+    augment_dir("bootstrap/neg/", "/Users/AtulyaRavishankar/Documents/Dataset/neg_aug/")
 
 
