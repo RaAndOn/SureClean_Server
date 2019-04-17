@@ -3,6 +3,5 @@ bootstrap
 __pycache__
 sliding_window.py
 .vscode
-svd_images/pos/*
-svd_imags/neg/*
+*.jpg
 .DS_Store
