@@ -155,7 +155,7 @@ class Dataset(object):
 
 if __name__ == "__main__":
     random.seed(0)
-    data = Dataset(split=0.95)
+    data = Dataset(split=0.97)
     data.train_svm()
     data.test_svm()
     
