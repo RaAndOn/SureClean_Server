@@ -33,12 +33,12 @@ class Dataset(object):
         neg_files = os.listdir(self.neg_dir)
         random.shuffle(pos_files)
         random.shuffle(neg_files)
-        posIdx = int(len(pos_files) * self.split)
-        negIdx = int(len(neg_files) * self.split)
-        (self.pos_train, self.pos_test) = (pos_files[:posIdx], pos_files[posIdx:])
-        (self.neg_train, self.neg_test) = (neg_files[:negIdx], neg_files[negIdx:]) 
-        self.numTrainingImages = len(self.pos_train) + len(self.neg_train)
-        self.numTestingImages = len(self.pos_test) + len(self.neg_test)
+        pos_idx = int(len(pos_files) * self.split)
+        neg_idx = int(len(neg_files) * self.split)
+        (self.pos_train, self.pos_test) = (pos_files[:pos_idx], pos_files[pos_idx:])
+        (self.neg_train, self.neg_test) = (neg_files[:neg_idx], neg_files[neg_idx:]) 
+        self.num_training_images = len(self.pos_train) + len(self.neg_train)
+        self.num_testing_images = len(self.pos_test) + len(self.neg_test)
         self.img_dim = 70
         # HOG hyperparameters
         self.hog_orientations = 9
@@ -54,16 +54,19 @@ class Dataset(object):
         self.svm_intercept_file = "svm_intercept.npy"
         self.svm_pkl_file = "svm_model.pkl"
     
+    '''
+    Loads training data (images and labels) for classifier.
+    '''
     def get_training_data(self):
         print("Getting training data")
         idx = 0
-        training_data = np.zeros((self.img_dim, self.img_dim, self.numTrainingImages))
-        training_labels = np.zeros(self.numTrainingImages)
+        training_data = np.zeros((self.img_dim, self.img_dim, self.num_training_images))
+        training_labels = np.zeros(self.num_training_images)
         print("    Fetching positive samples")
         for file in self.pos_train:
             if (file != self.ignore_file):
-                fileName = self.pos_dir + file
-                img = cv2.imread(fileName)
+                file_name = self.pos_dir + file
+                img = cv2.imread(file_name)
                 if (img is not None):
                     training_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
                     training_labels[idx] = 1
@@ -71,24 +74,27 @@ class Dataset(object):
         print("    Fetching negative samples")
         for file in self.neg_train:
             if (file != self.ignore_file):
-                fileName = self.neg_dir + file
-                img = cv2.imread(fileName)
+                file_name = self.neg_dir + file
+                img = cv2.imread(file_name)
                 if (img is not None):
                     training_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
                     training_labels[idx] = 0
                     idx += 1
         return training_data.astype('float'), training_labels
     
+    '''
+    Loads testing data (images and labels) for classifier.
+    '''
     def get_testing_data(self):
         print("Getting test data")
         idx = 0
-        testing_data = np.zeros((self.img_dim, self.img_dim, self.numTestingImages))
-        testing_labels = np.zeros(self.numTestingImages)
+        testing_data = np.zeros((self.img_dim, self.img_dim, self.num_testing_images))
+        testing_labels = np.zeros(self.num_testing_images)
         print("    Fetching positive samples")
         for file in self.pos_test:
             if (file != self.ignore_file):
-                fileName = self.pos_dir + file
-                img = cv2.imread(fileName)
+                file_name = self.pos_dir + file
+                img = cv2.imread(file_name)
                 if (img is not None):
                     testing_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
                     testing_labels[idx] = 1
@@ -96,14 +102,17 @@ class Dataset(object):
         print("    Fetching negative samples")
         for file in self.neg_test:
             if (file != self.ignore_file):
-                fileName = self.neg_dir + file
-                img = cv2.imread(fileName)
+                file_name = self.neg_dir + file
+                img = cv2.imread(file_name)
                 if (img is not None):
                     testing_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
                     testing_labels[idx] = 0
                     idx += 1
         return testing_data.astype('float'), testing_labels
     
+    '''
+    Converts an image patch into a HoG feature for the classifier.
+    '''
     def get_feature(self, patch_H):
         feat = hog(patch_H, cells_per_block=self.hog_cells_per_block,
                         pixels_per_cell=self.hog_pixels_per_cell,
@@ -113,12 +122,15 @@ class Dataset(object):
                         feature_vector=self.hog_feature_vector)
         return feat
 
+    '''
+    Trains a Support Vector Machine (SVM) classifier and saves the model for future use.
+    '''
     def train_svm(self):
         print("Training SVM")
-        features = np.zeros((self.numTrainingImages, self.hog_size))
+        features = np.zeros((self.num_training_images, self.hog_size))
         data, labels = self.get_training_data() # (100, 100, 1200), (1200,)
         print("    Creating features")
-        for i in range(self.numTrainingImages):
+        for i in range(self.num_training_images):
             img = data[:, :, i]
             feat = self.get_feature(img)
             features[i, :] = feat
@@ -131,14 +143,18 @@ class Dataset(object):
             pickle.dump(clf, file)
         return clf
     
+    '''
+    Tests a Support Vector Machine (SVM) model.
+    Model is loaded from disk.
+    '''
     def test_svm(self):
         print("Testing SVM")
         with open(self.svm_pkl_file, 'rb') as file:  
             clf = pickle.load(file)
-        features = np.zeros((self.numTestingImages, self.hog_size))
+        features = np.zeros((self.num_testing_images, self.hog_size))
         data, labels = self.get_testing_data()
         print("    Creating features.")
-        for i in range(self.numTestingImages):
+        for i in range(self.num_testing_images):
             img = data[:, :, i]
             feat = self.get_feature(img)
             features[i, :] = feat
@@ -147,6 +163,9 @@ class Dataset(object):
         print("Accuracy: %f" %acc)
         return acc
     
+    '''
+    Classifies an image patch using the classifier.
+    '''
     def predict(self, patch, classifier):
         img = patch[:, :, 0]
         feat = self.get_feature(img)

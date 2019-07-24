@@ -19,8 +19,8 @@ from matplotlib import colors
 
 from hog_svm import Dataset
 
-debugThresh = False
-debugFile = ""
+debug_thresh = False
+debug_file = ""
 
 random.seed(0)
 data = Dataset(split=0.95)
@@ -48,12 +48,18 @@ class LitterDetector(object):
         if (self.clf is None):
             raise Exception("Failed to load SVM model.")
     
-    def read_image_hsv(self, fileName):
+    '''
+    Reads in an image 'fileName' and outputs the image in BGR, RGB and HSV color spaces.
+    '''
+    def read_image(self, fileName):
         img_bgr = cv2.imread(fileName)
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
         img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
         return (img_bgr, img_rgb, img_hsv)
     
+    '''
+    Computes dynamic thresholds in the HSV space for the image 'img_hsv'.
+    '''
     def compute_thresholds(self, img_hsv):
         [H, S, _] = [img_hsv[:, :, 0], img_hsv[:, :, 1], img_hsv[:, :, 2]]
         thresh = dict()
@@ -69,6 +75,9 @@ class LitterDetector(object):
         thresh["V_max"] = 255
         return thresh
     
+    '''
+    Compute the centroid of a contour 'contour'.
+    '''
     def get_contour_centroid(self, contour):
         M = cv2.moments(contour)
         try:
@@ -79,6 +88,9 @@ class LitterDetector(object):
             cY = 0
         return (cX, cY)
     
+    '''
+    Extracts a patch from the image centered at the centroid of 'ctr'.
+    '''
     def get_patch_idx(self, ctr):
         (cX, cY) = self.get_contour_centroid(ctr)
         halfPatch = int(self.patch_size/2)
@@ -102,6 +114,9 @@ class LitterDetector(object):
             maxY = minY + self.patch_size - 1
         return (minX, maxX, minY, maxY)
     
+    '''
+    Classifies an image patch 'patch' as litter or not-litter.
+    '''
     def predict(self, patch):
         global data
         img = patch[:, :, 0]
@@ -109,6 +124,9 @@ class LitterDetector(object):
         label_clf = self.clf.predict(feat.reshape((1, -1)))
         return label_clf[0]
     
+    '''
+    Determines if a contour 'ctr' is valid (i.e. should be classified).
+    '''
     def is_valid_contour(self, img_hsv, ctr):
         global data
         size_of_blob = ctr.shape[0]
@@ -118,8 +136,11 @@ class LitterDetector(object):
             return (self.predict(patch) > 0.5)
         return False
 
+    '''
+    Thresholds the image 'img_hsv' based on the thresholds stored in 'thresh'.
+    '''
     def threshold_image(self, img_hsv, thresh):
-        global debugThresh, debugFile
+        global debug_thresh, debug_file
         img_thresh = 255 - cv2.inRange(img_hsv, (thresh["H_min"], thresh["S_min"], thresh["V_min"]), (thresh["H_max"], thresh["S_max"], thresh["V_max"]))
         _, contours, _ = cv2.findContours(img_thresh, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE) 
         mask = np.ones(img_thresh.shape[:2], dtype="uint8") * 255
@@ -131,10 +152,13 @@ class LitterDetector(object):
                 cv2.drawContours(mask, [c], -1, 0, -1)
         image = cv2.bitwise_and(img_thresh, img_thresh, mask=mask).astype('uint8')
         output = (255*image).astype("uint8")
-        if (debugThresh):
-            cv2.imwrite("svd_images/thresh/"+ debugFile + "_thresh.jpg", img_thresh)
+        if (debug_thresh):
+            cv2.imwrite("svd_images/thresh/"+ debug_file + "_thresh.jpg", img_thresh)
         return (output, valid_contours)
     
+    '''
+    Plots the locations of litter ('contours') identified in 'image'.
+    '''
     def visualize_litter_locations(self, image, contours):
         centroids = []
         for c in contours:
@@ -150,10 +174,10 @@ if __name__ == "__main__":
     ld = LitterDetector()
     for file in fileNames:
         if (file != ".DS_Store" and file != ".gitignore"):
-            debugFile = file[:-4]
+            debug_file = file[:-4]
             print("Processing file %d of %d" %(idx, len(fileNames)-2))
             fileName = "svd_images/input/" + file
-            (img_bgr, img_rgb, img_hsv) = ld.read_image_hsv(fileName)
+            (img_bgr, img_rgb, img_hsv) = ld.read_image(fileName)
             thresh = ld.compute_thresholds(img_hsv)
             (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
             output = ld.visualize_litter_locations(img_bgr, contours)
