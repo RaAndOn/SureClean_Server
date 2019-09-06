@@ -6,7 +6,6 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 
-SIZE = 3
 
 def affine_transform(point, rot, trans, addNoise=False):
     # point: (2,) numpy array
@@ -20,7 +19,14 @@ def affine_transform(point, rot, trans, addNoise=False):
     return warped
 
 
-def isPotentialMatch(points1, points2, n):
+def isPotentialMatch(points1, points2):
+    # TODO don't really need the ids to be included in source and target here... remove later
+    SIZE = 3
+    n1 = points1.shape[1]
+    n2 = points2.shape[1]
+    n = min(n1, n2)
+    if (n1 < SIZE or n2 < SIZE):
+        raise Exception("Not enough points to compute affine transform. Must have at least " + SIZE + ".")
     indices1 = random.sample(range(n), SIZE)
     indices2 = random.sample(range(n), SIZE)
     source = np.zeros((1, SIZE, 3))
@@ -35,7 +41,8 @@ def isPotentialMatch(points1, points2, n):
     return (transformation is not None), transformation, source, target
 
 
-def compute_reproj_error(transformation, source, target):
+def compute_reproj(transformation, source, target):
+    # TODO don't really need the ids to be included in the reprojections here... remove later
     if (transformation is None):
         return sys.maxsize, None
     rot = transformation[:, :2]
@@ -53,26 +60,19 @@ def compute_reproj_error(transformation, source, target):
 def get_affine(points1, points2):
     # points1: (1, n1, 3) -- [x, y, id]
     # points2: (1, n2, 3) -- [x, y, id]
-    n1 = points1.shape[1]
-    n2 = points2.shape[1]
-    n = min(n1, n2)
-    if (n1 < SIZE or n2 < SIZE):
-        raise Exception("Not enough points to compute affine transform. Must have at least 3.")
     minReprojError = sys.maxsize
     bestTransform = None
-    count = 0
     while (minReprojError > 5.0):
-        _, transformation, source, target = isPotentialMatch(points1, points2, n)
-        reprojError, _ = compute_reproj_error(transformation, source, target)
+        _, transformation, source, target = isPotentialMatch(points1, points2)
+        reprojError, _ = compute_reproj(transformation, source, target)
         if (minReprojError is None or reprojError < minReprojError):
             minReprojError = reprojError
             bestTransform = transformation
-        count += 1
     return bestTransform, minReprojError
 
 
 def plot_mapping(transformation, source, target):
-    _, reproj = compute_reproj_error(transformation, source, target)
+    _, reproj = compute_reproj(transformation, source, target)
     if (reproj is None):
         print("No reprojections to plot.")
     plot_data = {
@@ -118,6 +118,8 @@ if __name__ == "__main__":
     jumbled = copy.deepcopy(target[0])
     np.random.shuffle(jumbled)
     target = np.array([jumbled])
+    print(source)
+    print(target)
     #### Compute affine transform and measure reprojection error ####
     transformation, reprojError = get_affine(source, target)
     print("Transform: ", transformation)
