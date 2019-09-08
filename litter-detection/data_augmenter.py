@@ -12,7 +12,10 @@ import os
 import numpy as np
 import cv2
 
-img_size = 70
+# each image is 100x100. We only take the 70x70 middle patch because when we rotate is by 45º, we want to ensure that there are no 
+# empty pixels in the final image --> 100 / sqrt(2) = 70
+img_size = 70 
+
 num_angles = 36
 
 ctr = 0
@@ -68,14 +71,15 @@ def augment_dir(directory_in_name, directory_out_name):
                 num_images = aug_images.shape[3]
                 for i in range(num_images):
                     cur_img = aug_images[:, :, :, i]
-                    cv2.imwrite(directory_out_name + str(ctr) + "_bootstrapped_3.jpg", cur_img)
+                    cv2.imwrite(directory_out_name + str(ctr) + "_aug.jpg", cur_img)
                     ctr += 1
 
 if __name__ == "__main__":
     # Modify the file paths below if you have the data stored locally
     # Note that the bootstrap/ directory does not exist in the repository, it is just a placeholder path
     # Contact Atulya to get the final dataset.
-    augment_dir("bootstrap/pos/", "/Users/AtulyaRavishankar/Documents/Dataset/pos_aug/")
-    augment_dir("bootstrap/neg/", "/Users/AtulyaRavishankar/Documents/Dataset/neg_aug/")
+    augment_dir("dataset/grass/original/pos/", "dataset/grass/augmented/pos/")
+    ctr = 0
+    augment_dir("dataset/grass/original/neg/", "dataset/grass/augmented/neg/")
 
 

@@ -4,3 +4,4 @@ __pycache__
 sliding_window.py
 .vscode
 .DS_Store
+*.json
