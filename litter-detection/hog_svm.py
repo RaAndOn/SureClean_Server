@@ -143,8 +143,7 @@ class Dataset(object):
             pickle.dump(clf, file)
         return clf
     
-    '''ical
-
+    '''
     Tests a Support Vector Machine (SVM) model.
     Model is loaded from disk.
     '''
