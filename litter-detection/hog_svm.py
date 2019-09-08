@@ -4,7 +4,7 @@ Manager SVM classifier
 - Testing/Predicting: uses saved model to classify test image(s)
 
 Author: Atulya Ravishankar
-Updated: 04/17/2019
+Updated: 09/08/2019
 """
 
 import pickle
@@ -26,8 +26,8 @@ class Dataset(object):
     def __init__(self, split=0.75):
         # Data hyperparameters
         self.split = split
-        self.pos_dir = "/Users/AtulyaRavishankar/Documents/Dataset/pos_aug/" # Modify this if you have the data stored locally
-        self.neg_dir = "/Users/AtulyaRavishankar/Documents/Dataset/neg_aug/" # Modify this if you have the data stored locally
+        self.pos_dir = "dataset/grass/augmented/pos/"
+        self.neg_dir = "dataset/grass/augmented/neg/"
         self.ignore_file = ".DS_Store"
         pos_files = os.listdir(self.pos_dir)
         neg_files = os.listdir(self.neg_dir)
@@ -48,11 +48,11 @@ class Dataset(object):
         self.hog_visualize = False
         self.hog_transform_sqrt = False
         self.hog_feature_vector = True
-        self.hog_size = 2916 #8100
+        self.hog_size = 2916
         # SVM hyperparameters
-        self.svm_coeff_file = "svm_coeffs.npy"
-        self.svm_intercept_file = "svm_intercept.npy"
-        self.svm_pkl_file = "svm_model.pkl"
+        self.svm_coeff_file = "model/grass/grass_svm_coeffs.npy"
+        self.svm_intercept_file = "model/grass/grass_svm_intercept.npy"
+        self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
     
     '''
     Loads training data (images and labels) for classifier.
@@ -143,7 +143,8 @@ class Dataset(object):
             pickle.dump(clf, file)
         return clf
     
-    '''
+    '''ical
+
     Tests a Support Vector Machine (SVM) model.
     Model is loaded from disk.
     '''
@@ -172,8 +173,8 @@ class Dataset(object):
         label_clf = classifier.predict(feat.reshape((1, -1)))
         return label_clf[0]
 
+
 if __name__ == "__main__":
-    random.seed(0)
     data = Dataset(split=0.97)
     data.train_svm()
     data.test_svm()

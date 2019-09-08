@@ -5,7 +5,7 @@ each of the original images. This helps the training set be more representative
 of geometric variations of the data in the real world (e.g. arbitrary rotations).
 
 Author: Atulya Ravishankar
-Updated: 04/17/2019
+Updated: 09/08/2019
 """
 
 import os

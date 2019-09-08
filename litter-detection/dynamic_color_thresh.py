@@ -1,16 +1,17 @@
 """
 Takes in images from the svd_images/input/ directory, finds the litter objects in the images
-and saves the output to the svd_images/output/ directory.
+and saves the output to the svd_images/output/ directory. A JSON file containing the results
+is also generated.
 
 Author: Atulya Ravishankar
-Updated: 04/17/2019
+Updated: 09/08/2019
 """
 
 import pickle
-import random
 import os
 import copy
 import numpy as np
+import json
 import cv2
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -22,7 +23,6 @@ from hog_svm import Dataset
 debug_thresh = False
 debug_file = ""
 
-random.seed(0)
 data = Dataset(split=0.95)
 
 # OpenCV range for HSV channels:
@@ -40,9 +40,9 @@ class LitterDetector(object):
         self.patch_size = 70
         self.img_width = 4000 
         self.img_height = 2250
-        self.svm_coeffs = np.load("svm_coeffs.npy")
-        self.svm_intercept = np.load("svm_intercept.npy")
-        self.svm_pkl_file = "svm_model.pkl"
+        self.svm_coeffs = np.load("model/grass/grass_svm_coeffs.npy")
+        self.svm_intercept = np.load("model/grass/grass_svm_intercept.npy")
+        self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
         with open(self.svm_pkl_file, 'rb') as file:  
             self.clf = pickle.load(file)
         if (self.clf is None):
@@ -153,7 +153,7 @@ class LitterDetector(object):
         image = cv2.bitwise_and(img_thresh, img_thresh, mask=mask).astype('uint8')
         output = (255*image).astype("uint8")
         if (debug_thresh):
-            cv2.imwrite("svd_images/thresh/"+ debug_file + "_thresh.jpg", img_thresh)
+            cv2.imwrite("images/thresh/"+ debug_file + "_thresh.jpg", img_thresh)
         return (output, valid_contours)
     
     '''
@@ -167,20 +167,54 @@ class LitterDetector(object):
             cv2.circle(image, (cX, cY), 50, (0, 0, 255), 3, 8, 0)
         return image
 
+'''
+Takes in a list of points (x, y) that returns a subset of that list such that no
+two points are within 5px of each other.
+'''
+def filter_points(points):
+    filtered = []
+    to_remove = [False for _ in points]
+    for i in range(len(points)):
+        if not to_remove[i]:
+            for j in range(len(points)):
+                if (i != j):
+                    dist = np.linalg.norm(np.array(points[i]) - np.array(points[j]))
+                    if (dist < 5):
+                        to_remove[j] = True
+            filtered.append(points[i])
+    return filtered
+
+'''
+Uses the litter detector results, filters them and saves it to a JSON file.
+'''
+def filter_and_save_results(results):
+    filtered = dict()
+    for key in results:
+        points = results[key]
+        filtered[key] = filter_points(points)
+    with open('results.json', 'w') as results_file:
+        json.dump(filtered, results_file)
+
 
 if __name__ == "__main__":
     idx = 1
-    fileNames = os.listdir("svd_images/input/")
+    fileNames = os.listdir("images/input/")
     ld = LitterDetector()
+    results = dict()
     for file in fileNames:
         if (file != ".DS_Store" and file != ".gitignore"):
             debug_file = file[:-4]
             print("Processing file %d of %d" %(idx, len(fileNames)-2))
-            fileName = "svd_images/input/" + file
+            fileName = "images/input/" + file
             (img_bgr, img_rgb, img_hsv) = ld.read_image(fileName)
             thresh = ld.compute_thresholds(img_hsv)
             (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
             output = ld.visualize_litter_locations(img_bgr, contours)
-            cv2.imwrite("svd_images/output/"+file[:-4]+"_result.jpg", output)
+            results[file] = []
+            for c in contours:
+                (cX, cY) = ld.get_contour_centroid(c)
+                results[file].append((cX, cY))
+            cv2.imwrite("images/output/"+file[:-4]+"_result.jpg", output)
             idx += 1
+    filter_and_save_results(results)
     print("Done")
