@@ -1,4 +1,7 @@
+# Folders
 __pycache__
+ros_bags
+
+# File Extensions
 .vscode
 .DS_Store
-/ros_bags
