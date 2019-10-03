@@ -1,6 +1,9 @@
 # Folders
 __pycache__
 ros_bags
+build/
+devel/
+.catkin_workspace
 
 # File Extensions
 .vscode
