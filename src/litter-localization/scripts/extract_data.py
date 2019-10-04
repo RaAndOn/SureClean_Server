@@ -5,19 +5,40 @@ import os
 import rospy
 import cv2
 import numpy as np
+import json
+
+
+data = {}
+
+def save_data_to_json(file_name,write_data):
+	if not data:
+		data['run'] = []
+	data['run'].append({
+	    'Image': write_data[0],
+	    'GPS' : [
+	    	{
+	    	'Latitude':  write_data[1],
+		    'Longitude': write_data[2],
+		    'Altitude':  write_data[3],
+	    	}
+	    ],
+	    'Attitude' : [ 
+	    	{
+	    	'x' : write_data[4],
+	    	'y' : write_data[5],
+	    	'z' : write_data[6],
+	    	'w' : write_data[7],
+	    	}
+	    ],
+	    'Height' : write_data[8],
+	})
+
+	with open(file_name, 'w+') as outfile:
+	    json.dump(data, outfile, indent=2)
 
 def save_image_to_file(image_msg,file_name):
         rospy.loginfo("Processing image...")
-        # Image to numpy array
         img_arr = np.fromstring(image_msg.data, np.uint8).reshape(image_msg.height,image_msg.width)
-        # img_arr = img_arr.reshape(image_msg.height,image_msg.width)
-        print(img_arr.shape)
-
-        # Decode to cv2 image and store
-        #cv2_img = cv2.imdecode(img_arr, cv2.CV_LOAD_IMAGE_COLOR)
-        cv2.imshow('Color image', img_arr)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
         cv2.imwrite(file_name, img_arr)
         rospy.loginfo("Saved to: " + file_name)
 
@@ -32,9 +53,19 @@ def extract_data():
 			if '.bag' in bag:
 				bag = bag.replace('.bag','')
 				bag_data = rosbag.Bag(bag_file_path)
-				for topic, msg, t in bag_data.read_messages(topics=['/SurClean_UAV/annotated_image']):
-					print(msg.image.encoding)
+				write_data = []
+				for topic, msg, t in bag_data.read_messages(topics=['/SurClean_UAV/annotated_image']):	
 					save_image_to_file(msg.image,folder_path+'/'+bag+'.png')
+					write_data.append(directory+'/'+bag+'.png')
+					write_data.append(msg.gps.latitude)
+					write_data.append(msg.gps.longitude)
+					write_data.append(msg.gps.altitude)
+					write_data.append(msg.attitude.quaternion.x)
+					write_data.append(msg.attitude.quaternion.y)
+					write_data.append(msg.attitude.quaternion.z)
+					write_data.append(msg.attitude.quaternion.w)
+					write_data.append(msg.height.data)
+					save_data_to_json(folder_path+'/'+directory+'.txt',write_data)
 				bag_data.close()
 
 if __name__ == '__main__':
@@ -42,4 +73,3 @@ if __name__ == '__main__':
 		extract_data()
 	except rospy.ROSInterruptException:
 		pass
-
