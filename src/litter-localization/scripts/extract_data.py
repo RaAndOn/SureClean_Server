@@ -38,7 +38,7 @@ def save_data_to_json(file_name,write_data):
 
 def save_image_to_file(image_msg,file_name):
         rospy.loginfo("Processing image...")
-        img_arr = np.fromstring(image_msg.data, np.uint8).reshape(image_msg.height,image_msg.width)
+        img_arr = np.fromstring(image_msg.data, np.uint8).reshape(image_msg.height,image_msg.width,3)
         cv2.imwrite(file_name, img_arr)
         rospy.loginfo("Saved to: " + file_name)
 

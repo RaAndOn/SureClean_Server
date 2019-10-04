@@ -1,6 +1,6 @@
 # Folders
 __pycache__
-ros_bags
+ros_bags*
 build/
 devel/
 .catkin_workspace
