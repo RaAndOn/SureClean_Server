@@ -78,8 +78,8 @@ if __name__ == "__main__":
     # Modify the file paths below if you have the data stored locally
     # Note that the bootstrap/ directory does not exist in the repository, it is just a placeholder path
     # Contact Atulya to get the final dataset.
-    augment_dir("dataset/grass/original/pos/", "dataset/grass/augmented/pos/")
+    augment_dir("../dataset/grass/original/pos/", "../dataset/grass/augmented/pos/")
     ctr = 0
-    augment_dir("dataset/grass/original/neg/", "dataset/grass/augmented/neg/")
+    augment_dir("../dataset/grass/original/neg/", "../dataset/grass/augmented/neg/")
 
 

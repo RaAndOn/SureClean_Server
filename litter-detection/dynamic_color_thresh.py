@@ -1,6 +1,6 @@
 """
-Takes in images from the svd_images/input/ directory, finds the litter objects in the images
-and saves the output to the svd_images/output/ directory. A JSON file containing the results
+Takes in images from the images/input/ directory, finds the litter objects in the images
+and saves the output to the images/output/ directory. A JSON file containing the results
 is also generated.
 
 Author: Atulya Ravishankar
