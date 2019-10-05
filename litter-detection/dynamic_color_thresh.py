@@ -23,7 +23,7 @@ from hog_svm import Dataset
 debug_thresh = False
 debug_file = ""
 
-data = Dataset(split=0.95)
+data = Dataset(split=0.95, training=False)
 
 # OpenCV range for HSV channels:
 # H: [0 180]

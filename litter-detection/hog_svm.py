@@ -23,22 +23,23 @@ from matplotlib import pyplot as plt
 
 class Dataset(object):
 
-    def __init__(self, split=0.75):
+    def __init__(self, split=0.75, training=True):
         # Data hyperparameters
         self.split = split
         self.pos_dir = "dataset/grass/augmented/pos/"
         self.neg_dir = "dataset/grass/augmented/neg/"
         self.ignore_file = ".DS_Store"
-        pos_files = os.listdir(self.pos_dir)
-        neg_files = os.listdir(self.neg_dir)
-        random.shuffle(pos_files)
-        random.shuffle(neg_files)
-        pos_idx = int(len(pos_files) * self.split)
-        neg_idx = int(len(neg_files) * self.split)
-        (self.pos_train, self.pos_test) = (pos_files[:pos_idx], pos_files[pos_idx:])
-        (self.neg_train, self.neg_test) = (neg_files[:neg_idx], neg_files[neg_idx:]) 
-        self.num_training_images = len(self.pos_train) + len(self.neg_train)
-        self.num_testing_images = len(self.pos_test) + len(self.neg_test)
+        if (training):
+            pos_files = os.listdir(self.pos_dir)
+            neg_files = os.listdir(self.neg_dir)
+            random.shuffle(pos_files)
+            random.shuffle(neg_files)
+            pos_idx = int(len(pos_files) * self.split)
+            neg_idx = int(len(neg_files) * self.split)
+            (self.pos_train, self.pos_test) = (pos_files[:pos_idx], pos_files[pos_idx:])
+            (self.neg_train, self.neg_test) = (neg_files[:neg_idx], neg_files[neg_idx:]) 
+            self.num_training_images = len(self.pos_train) + len(self.neg_train)
+            self.num_testing_images = len(self.pos_test) + len(self.neg_test)
         self.img_dim = 70
         # HOG hyperparameters
         self.hog_orientations = 9
