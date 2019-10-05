@@ -159,11 +159,8 @@ class LitterDetector(object):
     '''
     Plots the locations of litter ('contours') identified in 'image'.
     '''
-    def visualize_litter_locations(self, image, contours):
-        centroids = []
-        for c in contours:
-            (cX, cY) = self.get_contour_centroid(c)
-            centroids.append((cX, cY))
+    def visualize_litter_locations(self, image, points):
+        for [cX, cY] in points:
             cv2.circle(image, (cX, cY), 50, (0, 0, 255), 3, 8, 0)
         return image
 
@@ -171,29 +168,30 @@ class LitterDetector(object):
 Takes in a list of points (x, y) that returns a subset of that list such that no
 two points are within 5px of each other.
 '''
-def filter_points(points):
+def filter_points(contours):
     filtered = []
-    to_remove = [False for _ in points]
-    for i in range(len(points)):
+    to_remove = [False for _ in contours]
+    for i in range(len(contours)):
         if not to_remove[i]:
-            for j in range(len(points)):
+            for j in range(len(contours)):
                 if (i != j):
-                    dist = np.linalg.norm(np.array(points[i]) - np.array(points[j]))
-                    if (dist < 5):
+                    (cXi, cYi) = ld.get_contour_centroid(contours[i])
+                    (cXj, cYj) = ld.get_contour_centroid(contours[j])
+                    dist = np.linalg.norm(np.array([cXi, cYi]) - np.array([cXj, cYj]))
+                    if (dist < 10):
                         to_remove[j] = True
-            filtered.append(points[i])
-    return filtered
+            filtered.append(contours[i])
+    final_positions = []
+    for ctr in filtered:
+        final_positions.append(ld.get_contour_centroid(ctr))
+    return final_positions
 
 '''
 Uses the litter detector results, filters them and saves it to a JSON file.
 '''
 def filter_and_save_results(results):
-    filtered = dict()
-    for key in results:
-        points = results[key]
-        filtered[key] = filter_points(points)
     with open('results.json', 'w') as results_file:
-        json.dump(filtered, results_file)
+        json.dump(results, results_file)
 
 
 if __name__ == "__main__":
@@ -209,11 +207,9 @@ if __name__ == "__main__":
             (img_bgr, img_rgb, img_hsv) = ld.read_image(fileName)
             thresh = ld.compute_thresholds(img_hsv)
             (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
-            output = ld.visualize_litter_locations(img_bgr, contours)
-            results[file] = []
-            for c in contours:
-                (cX, cY) = ld.get_contour_centroid(c)
-                results[file].append((cX, cY))
+            # Filter points to remove duplicates
+            results[file] = filter_points(contours)
+            output = ld.visualize_litter_locations(img_bgr, results[file])
             cv2.imwrite("images/output/"+file[:-4]+"_result.jpg", output)
             idx += 1
     filter_and_save_results(results)
