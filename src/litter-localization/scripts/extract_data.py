@@ -6,6 +6,7 @@ import rospy
 import cv2
 import numpy as np
 import json
+import pixel_to_meters as pxm
 
 
 data = {}
@@ -66,6 +67,12 @@ def extract_data():
 					write_data.append(msg.attitude.quaternion.w)
 					write_data.append(msg.height.data)
 					save_data_to_json(folder_path+'/'+directory+'.txt',write_data)
+					##########################################################
+					########     Obtain Litter Coordinates 		    ##########
+					##########################################################
+					# Get list of litter_coordinates from Atulya's Code
+
+					pxm.execute_pixel_to_meters(msg.attitude.quaternion)
 				bag_data.close()
 
 if __name__ == '__main__':

@@ -1,4 +1,3 @@
-import rospy
 import numpy as np
 import math
 
@@ -41,16 +40,36 @@ def build_extrinsics(quaternion):
 	extrinsics = np.matmul(altitude_to_camera,np.matmul(rotation_to_camera,rotation_to_camera))
 	return extrinsics
 
-if __name__ == '__main__':
+def execute_pixel_to_meters(quaternion, height, pixels_list):
 	try:
-		# Get quaternion,height from json/rosbag
-		# Get pixel_x/pixel_y from ros topic subscribe
+		##########################################################
+		#############		  Dummy Data 		##################
+		##########################################################
 		pixel_x = 0
 		pixel_y = 0
-		height = 20 # dummy data
-		extrinsics = build_extrinsics(x=0.016926233803018848,y=-0.0007391055822455237,z=0.5876669701418246,w=0.8089255148260016)
+		# height = 20 
+		# extrinsics = build_extrinsics(x=0.016926233803018848,y=-0.0007391055822455237,z=0.5876669701418246,w=0.8089255148260016)
 		intrinsics = np.eye(4,dtype=np.float)[0:3,:]  #dummy data -- Get actual intrinsics from dji camera
+
+
+		##########################################################
+		#############		  Actual Data 		##################
+		##########################################################
+		#projection_matrix:
+		#rows: 3
+		#cols: 4
+		#data: [757.596436, 0.000000, 634.148234, 0.000000, 0.000000, 761.981262, 364.952056, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000]
+
+
+	 	intrinsics = np.array([[757.596436, 0.000000, 634.148234, 0.000000], [0.000000, 761.981262, 364.952056, 0.000000], [0.000000, 0.000000, 1.000000, 0.000000]])
+		extrinsics = build_extrinsics(quaternion.x,quaternion.y,quaternion.z,quaternion.w)
 		pixel_to_world = calculate_pixel_to_meters(pixel_x,pixel_y,height,intrinsics,extrinsics)
-		# publish this on a topic
+
+
+		##########################################################
+		#############		  Publish Data 		##################
+		##########################################################
+
+
 	except rospy.ROSInterruptException:
 		pass

@@ -168,6 +168,10 @@ class LitterDetector(object):
         return image
 
 
+
+## Avinash : Visualize contours for an image passed from a rosbag
+def 
+
 if __name__ == "__main__":
     idx = 1
     fileNames = os.listdir("svd_images/input/")

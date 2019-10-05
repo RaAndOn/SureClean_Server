@@ -61,7 +61,7 @@ def augment_dir(directory_in_name, directory_out_name):
     directory = os.listdir(directory_in_name)
     for file in directory:
         file_name = directory_in_name + file
-        if (file_name != ".DS_Store"):
+        if (file_name != ".DS_Store"):                       # Comment by Avinash : '.DS_Store' is a mac thing
             img = cv2.imread(file_name)
             if (img is not None):
                 aug_images = augment_image(img)
