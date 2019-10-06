@@ -20,7 +20,7 @@ from matplotlib import colors
 
 from hog_svm import Dataset
 
-debug_thresh = False
+debug_thresh = True
 debug_file = ""
 
 data = Dataset(split=0.95)
@@ -35,11 +35,12 @@ class LitterDetector(object):
     def __init__(self):
         self.h_thresh_width = 4.5
         self.s_thresh_width = 4.5
-        self.blob_lower_size = 20
-        self.blob_upper_size = 150
-        self.patch_size = 70
-        self.img_width = 4000 
-        self.img_height = 2250
+        self.blob_lower_size = 20 # size-dependent (20)
+        self.blob_upper_size = 150 # size-dependent (150)
+        self.patch_size = 70 # size-dependent (70)
+        self.img_width = 1280 # size-dependent (4000)
+        self.img_height = 720 # size-dependent (2250)
+        self.sf = int(4000.0 / self.img_width)
         self.svm_coeffs = np.load("model/grass/grass_svm_coeffs.npy")
         self.svm_intercept = np.load("model/grass/grass_svm_intercept.npy")
         self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
@@ -53,6 +54,8 @@ class LitterDetector(object):
     '''
     def read_image(self, fileName):
         img_bgr = cv2.imread(fileName)
+        new_size = (4000, 2250)
+        img_bgr = cv2.resize(img_bgr, new_size)
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
         img_hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
         return (img_bgr, img_rgb, img_hsv)
@@ -133,7 +136,8 @@ class LitterDetector(object):
         if (size_of_blob >= self.blob_lower_size and size_of_blob <= self.blob_upper_size):
             (x1, x2, y1, y2) = self.get_patch_idx(ctr)
             patch = img_hsv[y1:y2+1, x1:x2+1, :]
-            return (self.predict(patch) > 0.5)
+            return True
+            # return (self.predict(patch) > 0.5)
         return False
 
     '''
