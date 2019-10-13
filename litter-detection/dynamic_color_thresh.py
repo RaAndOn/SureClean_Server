@@ -20,7 +20,7 @@ from matplotlib import colors
 
 from hog_svm import Dataset
 
-debug_thresh = False
+debug_thresh = True
 debug_file = ""
 
 data = Dataset(split=0.95)
@@ -35,11 +35,12 @@ class LitterDetector(object):
     def __init__(self):
         self.h_thresh_width = 4.5
         self.s_thresh_width = 4.5
-        self.blob_lower_size = 20
-        self.blob_upper_size = 150
-        self.patch_size = 70
-        self.img_width = 4000 
-        self.img_height = 2250
+        self.margin = 5
+        self.blob_lower_size = 5 #20
+        self.blob_upper_size = 150 #150
+        self.patch_size = 70 # 70
+        self.img_width = 1280  #4000
+        self.img_height = 720 #2250
         self.svm_coeffs = np.load("model/grass/grass_svm_coeffs.npy")
         self.svm_intercept = np.load("model/grass/grass_svm_intercept.npy")
         self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
@@ -130,10 +131,12 @@ class LitterDetector(object):
     def is_valid_contour(self, img_hsv, ctr):
         global data
         size_of_blob = ctr.shape[0]
-        if (size_of_blob >= self.blob_lower_size and size_of_blob <= self.blob_upper_size):
+        (cX, cY) = self.get_contour_centroid(ctr)
+        within_bounds = (cX >= self.margin) and (cX <= (self.img_width-self.margin)) and (cY >= self.margin) and (cY <= (self.img_height-self.margin))
+        if (within_bounds and size_of_blob >= self.blob_lower_size and size_of_blob <= self.blob_upper_size):
             (x1, x2, y1, y2) = self.get_patch_idx(ctr)
             patch = img_hsv[y1:y2+1, x1:x2+1, :]
-            return (self.predict(patch) > 0.5)
+            return True#(self.predict(patch) > 0.5)
         return False
 
     '''
@@ -142,18 +145,19 @@ class LitterDetector(object):
     def threshold_image(self, img_hsv, thresh):
         global debug_thresh, debug_file
         img_thresh = 255 - cv2.inRange(img_hsv, (thresh["H_min"], thresh["S_min"], thresh["V_min"]), (thresh["H_max"], thresh["S_max"], thresh["V_max"]))
-        _, contours, _ = cv2.findContours(img_thresh, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE) 
-        mask = np.ones(img_thresh.shape[:2], dtype="uint8") * 255
+        _, contours, _ = cv2.findContours(img_thresh, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_NONE) 
+        # mask = np.ones(img_thresh.shape[:2], dtype="uint8") * 255
         valid_contours = []
         for c in contours:
             if self.is_valid_contour(img_hsv, c):
                 valid_contours.append(c)
-            else:
-                cv2.drawContours(mask, [c], -1, 0, -1)
-        image = cv2.bitwise_and(img_thresh, img_thresh, mask=mask).astype('uint8')
-        output = (255*image).astype("uint8")
+            # else:
+            #     cv2.drawContours(mask, [c], -1, 0, -1)
+        # image = cv2.bitwise_and(img_thresh, img_thresh, mask=mask).astype('uint8')
+        # output = (255*image).astype("uint8")
         if (debug_thresh):
             cv2.imwrite("images/thresh/"+ debug_file + "_thresh.jpg", img_thresh)
+        output = img_thresh
         return (output, valid_contours)
     
     '''
@@ -161,7 +165,7 @@ class LitterDetector(object):
     '''
     def visualize_litter_locations(self, image, points):
         for [cX, cY] in points:
-            cv2.circle(image, (cX, cY), 50, (0, 0, 255), 3, 8, 0)
+            cv2.circle(image, (cX, cY), 18, (0, 0, 255), 3, 8, 0)
         return image
 
 '''
