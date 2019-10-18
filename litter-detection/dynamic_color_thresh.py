@@ -38,12 +38,12 @@ class LitterDetector(object):
         self.margin = 5
         self.blob_lower_size = 5 #20
         self.blob_upper_size = 150 #150
-        self.patch_size = 70 # 70
+        self.patch_size = 30 # 70
         self.img_width = 1280  #4000
         self.img_height = 720 #2250
-        self.svm_coeffs = np.load("model/grass/grass_svm_coeffs.npy")
-        self.svm_intercept = np.load("model/grass/grass_svm_intercept.npy")
-        self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
+        self.svm_coeffs = np.load("model/grass/grass_svm_coeffs_lowres.npy")
+        self.svm_intercept = np.load("model/grass/grass_svm_intercept_lowres.npy")
+        self.svm_pkl_file = "model/grass/grass_svm_model_lowres.pkl"
         with open(self.svm_pkl_file, 'rb') as file:  
             self.clf = pickle.load(file)
         if (self.clf is None):
@@ -136,7 +136,8 @@ class LitterDetector(object):
         if (within_bounds and size_of_blob >= self.blob_lower_size and size_of_blob <= self.blob_upper_size):
             (x1, x2, y1, y2) = self.get_patch_idx(ctr)
             patch = img_hsv[y1:y2+1, x1:x2+1, :]
-            return True#(self.predict(patch) > 0.5)
+            return (self.predict(patch) > 0.5)
+            # return True
         return False
 
     '''

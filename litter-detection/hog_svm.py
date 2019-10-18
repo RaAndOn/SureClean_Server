@@ -39,20 +39,20 @@ class Dataset(object):
         (self.neg_train, self.neg_test) = (neg_files[:neg_idx], neg_files[neg_idx:]) 
         self.num_training_images = len(self.pos_train) + len(self.neg_train)
         self.num_testing_images = len(self.pos_test) + len(self.neg_test)
-        self.img_dim = 70
+        self.img_dim = 30
         # HOG hyperparameters
-        self.hog_orientations = 9
-        self.hog_pixels_per_cell = (8, 8)
-        self.hog_cells_per_block = (3, 3)
+        self.hog_orientations = 9 # 9
+        self.hog_pixels_per_cell = (6, 6) #(8, 8)
+        self.hog_cells_per_block = (3, 3) #(3, 3)
         self.hog_block_norm = "L1"
         self.hog_visualize = False
         self.hog_transform_sqrt = False
         self.hog_feature_vector = True
-        self.hog_size = 2916
+        self.hog_size = 729 # hires = 2916, lowres = ???
         # SVM hyperparameters
-        self.svm_coeff_file = "model/grass/grass_svm_coeffs.npy"
-        self.svm_intercept_file = "model/grass/grass_svm_intercept.npy"
-        self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
+        self.svm_coeff_file = "model/grass/grass_svm_coeffs_lowres.npy"
+        self.svm_intercept_file = "model/grass/grass_svm_intercept_lowres.npy"
+        self.svm_pkl_file = "model/grass/grass_svm_model_lowres.pkl"
     
     '''
     Loads training data (images and labels) for classifier.
@@ -68,7 +68,8 @@ class Dataset(object):
                 file_name = self.pos_dir + file
                 img = cv2.imread(file_name)
                 if (img is not None):
-                    training_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    patch = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    training_data[:, :, idx] = cv2.resize(patch, (self.img_dim, self.img_dim))
                     training_labels[idx] = 1
                     idx += 1
         print("    Fetching negative samples")
@@ -77,7 +78,8 @@ class Dataset(object):
                 file_name = self.neg_dir + file
                 img = cv2.imread(file_name)
                 if (img is not None):
-                    training_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    patch = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    training_data[:, :, idx] = cv2.resize(patch, (self.img_dim, self.img_dim))
                     training_labels[idx] = 0
                     idx += 1
         return training_data.astype('float'), training_labels
@@ -96,7 +98,8 @@ class Dataset(object):
                 file_name = self.pos_dir + file
                 img = cv2.imread(file_name)
                 if (img is not None):
-                    testing_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    patch = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    testing_data[:, :, idx] = cv2.resize(patch, (self.img_dim, self.img_dim))
                     testing_labels[idx] = 1
                     idx += 1
         print("    Fetching negative samples")
@@ -105,7 +108,8 @@ class Dataset(object):
                 file_name = self.neg_dir + file
                 img = cv2.imread(file_name)
                 if (img is not None):
-                    testing_data[:, :, idx] = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    patch = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:, :, 0]
+                    testing_data[:, :, idx] = cv2.resize(patch, (self.img_dim, self.img_dim))
                     testing_labels[idx] = 0
                     idx += 1
         return testing_data.astype('float'), testing_labels
@@ -133,6 +137,8 @@ class Dataset(object):
         for i in range(self.num_training_images):
             img = data[:, :, i]
             feat = self.get_feature(img)
+            if (i == 0):
+                print(feat.shape)
             features[i, :] = feat
         print("    Computing weights")
         clf = LinearSVC(random_state=0, tol=1e-5)
