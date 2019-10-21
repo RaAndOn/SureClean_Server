@@ -37,11 +37,10 @@ def save_data_to_json(file_name,write_data):
 	    json.dump(data, outfile, indent=2)
 
 def save_image_to_file(image_msg,file_name):
-        rospy.loginfo("Processing image...")
-        img_arr = np.fromstring(image_msg.data, np.uint8).reshape(image_msg.height,image_msg.width,3)
-        cv2.imwrite(file_name, img_arr)
-        rospy.loginfo("Saved to: " + file_name)
-
+    rospy.loginfo("Processing image...")
+    img_arr = np.fromstring(image_msg.data, np.uint8).reshape(image_msg.height,image_msg.width,3)
+    cv2.imwrite(file_name, img_arr)
+    rospy.loginfo("Saved to: " + file_name)
 
 def extract_data():
 	rospy.init_node('extract_data', anonymous=True)
@@ -72,4 +71,4 @@ if __name__ == '__main__':
 	try:
 		extract_data()
 	except rospy.ROSInterruptException:
-		pass
+		print(rospy.ROSInterruptException)
