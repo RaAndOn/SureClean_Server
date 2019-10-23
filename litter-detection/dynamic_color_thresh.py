@@ -41,9 +41,9 @@ class LitterDetector(object):
         self.patch_size = 30 # 70
         self.img_width = 1280  #4000
         self.img_height = 720 #2250
-        self.svm_coeffs = np.load("model/grass/grass_svm_coeffs_lowres.npy")
-        self.svm_intercept = np.load("model/grass/grass_svm_intercept_lowres.npy")
-        self.svm_pkl_file = "model/grass/grass_svm_model_lowres.pkl"
+        self.svm_coeffs = np.load("model/grass/grass_svm_coeffs_lowres_gascola.npy")
+        self.svm_intercept = np.load("model/grass/grass_svm_intercept_lowres_gascola.npy")
+        self.svm_pkl_file = "model/grass/grass_svm_model_lowres_gascola.pkl"
         with open(self.svm_pkl_file, 'rb') as file:  
             self.clf = pickle.load(file)
         if (self.clf is None):

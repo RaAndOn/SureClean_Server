@@ -14,11 +14,14 @@ import cv2
 
 # each image is 100x100. We only take the 70x70 middle patch because when we rotate is by 45º, we want to ensure that there are no 
 # empty pixels in the final image --> 100 / sqrt(2) = 70
-img_size = 70 
+img_size = 30 # 70 for hires images
+full_size = 43 # 100 for hires images
 
 num_angles = 36
 
-ctr = 0
+file_format = ".png"
+
+ctr = 1000000
 
 '''
 Rotates the image 'img' in increments of 360/'num_angles'.
@@ -28,7 +31,7 @@ def augment_image_rot(img):
     (rows, cols, _) = img.shape
     images = np.zeros((img_size, img_size, 3, num_angles))
     angles = np.linspace(0, 350, num_angles) # 0, 10, 20, ..., 330, 340, 350
-    start_idx = int((100-img_size) / 2)
+    start_idx = int((full_size-img_size) / 2)
     end_idx = start_idx + img_size
     for i in range(len(angles)):
         angle = angles[i]
@@ -67,6 +70,8 @@ def augment_dir(directory_in_name, directory_out_name):
         if (file_name != ".DS_Store"):
             img = cv2.imread(file_name)
             if (img is not None):
+                if (img.shape[0] != full_size):
+                    img = cv2.resize(img, (full_size, full_size))
                 aug_images = augment_image(img)
                 num_images = aug_images.shape[3]
                 for i in range(num_images):
@@ -78,8 +83,10 @@ if __name__ == "__main__":
     # Modify the file paths below if you have the data stored locally
     # Note that the bootstrap/ directory does not exist in the repository, it is just a placeholder path
     # Contact Atulya to get the final dataset.
-    augment_dir("../dataset/grass/original/pos/", "../dataset/grass/augmented/pos/")
-    ctr = 0
-    augment_dir("../dataset/grass/original/neg/", "../dataset/grass/augmented/neg/")
+    print("Augmenting positive set")
+    augment_dir("dataset/grass/v1/pos/", "dataset/grass/augmented_v1/pos/")
+    ctr = 1000000
+    print("Augmenting negative set")
+    augment_dir("dataset/grass/v1/neg/", "dataset/grass/augmented_v1/neg/")
 
 

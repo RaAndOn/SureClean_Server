@@ -26,8 +26,8 @@ class Dataset(object):
     def __init__(self, split=0.75):
         # Data hyperparameters
         self.split = split
-        self.pos_dir = "dataset/grass/augmented/pos/"
-        self.neg_dir = "dataset/grass/augmented/neg/"
+        self.pos_dir = "dataset/grass/augmented_v1/pos/"
+        self.neg_dir = "dataset/grass/augmented_v1/neg/"
         self.ignore_file = ".DS_Store"
         pos_files = os.listdir(self.pos_dir)
         neg_files = os.listdir(self.neg_dir)
@@ -50,9 +50,9 @@ class Dataset(object):
         self.hog_feature_vector = True
         self.hog_size = 729 # hires = 2916, lowres = ???
         # SVM hyperparameters
-        self.svm_coeff_file = "model/grass/grass_svm_coeffs_lowres.npy"
-        self.svm_intercept_file = "model/grass/grass_svm_intercept_lowres.npy"
-        self.svm_pkl_file = "model/grass/grass_svm_model_lowres.pkl"
+        self.svm_coeff_file = "model/grass/grass_svm_coeffs_lowres_gascola.npy"
+        self.svm_intercept_file = "model/grass/grass_svm_intercept_lowres_gascola.npy"
+        self.svm_pkl_file = "model/grass/grass_svm_model_lowres_gascola.pkl"
     
     '''
     Loads training data (images and labels) for classifier.
@@ -146,7 +146,7 @@ class Dataset(object):
         np.save(self.svm_coeff_file, clf.coef_)
         np.save(self.svm_intercept_file, clf.intercept_)
         with open(self.svm_pkl_file, 'wb') as file:  
-            pickle.dump(clf, file)
+            pickle.dump(clf, file, protocol=2)
         return clf
     
     '''
