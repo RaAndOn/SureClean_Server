@@ -53,7 +53,7 @@ def extract_data():
 				bag = bag.replace('.bag','')
 				bag_data = rosbag.Bag(bag_file_path)
 				write_data = []
-				for topic, msg, t in bag_data.read_messages(topics=['/SurClean_UAV/annotated_image']):	
+				for topic, msg, t in bag_data.read_messages(topics=['/SureClean_UAV/annotated_image']):	
 					save_image_to_file(msg.image,folder_path+'/'+bag+'.png')
 					write_data.append(directory+'/'+bag+'.png')
 					write_data.append(msg.gps.latitude)
