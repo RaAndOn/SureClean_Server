@@ -29,30 +29,30 @@ class Dataset(object):
         self.pos_dir = "dataset/grass/augmented/pos/"
         self.neg_dir = "dataset/grass/augmented/neg/"
         self.ignore_file = ".DS_Store"
-        pos_files = os.listdir(self.pos_dir)
-        neg_files = os.listdir(self.neg_dir)
-        random.shuffle(pos_files)
-        random.shuffle(neg_files)
-        pos_idx = int(len(pos_files) * self.split)
-        neg_idx = int(len(neg_files) * self.split)
-        (self.pos_train, self.pos_test) = (pos_files[:pos_idx], pos_files[pos_idx:])
-        (self.neg_train, self.neg_test) = (neg_files[:neg_idx], neg_files[neg_idx:]) 
-        self.num_training_images = len(self.pos_train) + len(self.neg_train)
-        self.num_testing_images = len(self.pos_test) + len(self.neg_test)
+        # pos_files = os.listdir(self.pos_dir)
+        # neg_files = os.listdir(self.neg_dir)
+        # random.shuffle(pos_files)
+        # random.shuffle(neg_files)
+        # pos_idx = int(len(pos_files) * self.split)
+        # neg_idx = int(len(neg_files) * self.split)
+        # (self.pos_train, self.pos_test) = (pos_files[:pos_idx], pos_files[pos_idx:])
+        # (self.neg_train, self.neg_test) = (neg_files[:neg_idx], neg_files[neg_idx:]) 
+        # self.num_training_images = len(self.pos_train) + len(self.neg_train)
+        # self.num_testing_images = len(self.pos_test) + len(self.neg_test)
         self.img_dim = 70
         # HOG hyperparameters
         self.hog_orientations = 9
-        self.hog_pixels_per_cell = (8, 8)
+        self.hog_pixels_per_cell = (6, 6)
         self.hog_cells_per_block = (3, 3)
         self.hog_block_norm = "L1"
         self.hog_visualize = False
         self.hog_transform_sqrt = False
         self.hog_feature_vector = True
-        self.hog_size = 2916
+        self.hog_size = 729
         # SVM hyperparameters
-        self.svm_coeff_file = "model/grass/grass_svm_coeffs.npy"
-        self.svm_intercept_file = "model/grass/grass_svm_intercept.npy"
-        self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
+        self.svm_coeff_file = "model/grass/grass_svm_coeffs_lowres.npy"
+        self.svm_intercept_file = "model/grass/grass_svm_intercept_lowres.npy"
+        self.svm_pkl_file = "model/grass/grass_svm_model_lowres.pkl"
     
     '''
     Loads training data (images and labels) for classifier.
@@ -140,7 +140,7 @@ class Dataset(object):
         np.save(self.svm_coeff_file, clf.coef_)
         np.save(self.svm_intercept_file, clf.intercept_)
         with open(self.svm_pkl_file, 'wb') as file:  
-            pickle.dump(clf, file)
+            pickle.dump(clf, file, protocol=2)
         return clf
     
     '''

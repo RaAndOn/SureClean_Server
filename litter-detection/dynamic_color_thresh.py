@@ -32,18 +32,19 @@ data = Dataset(split=0.95)
 
 class LitterDetector(object):
 
-    def __init__(self):
+    # def __init__(self):
+    def __init__(self, path=""):
         self.h_thresh_width = 4.5
         self.s_thresh_width = 4.5
-        self.blob_lower_size = 20
+        self.blob_lower_size = 5
         self.blob_upper_size = 150
-        self.patch_size = 70
-        self.img_width = 4000 
-        self.img_height = 2250
-        self.svm_coeffs = np.load("model/grass/grass_svm_coeffs.npy")
-        self.svm_intercept = np.load("model/grass/grass_svm_intercept.npy")
-        self.svm_pkl_file = "model/grass/grass_svm_model.pkl"
-        with open(self.svm_pkl_file, 'rb') as file:  
+        self.patch_size = 30
+        self.img_width = 1280 
+        self.img_height = 720
+        self.svm_coeffs = np.load(path + "model/grass/grass_svm_coeffs_lowres.npy")
+        self.svm_intercept = np.load(path + "model/grass/grass_svm_intercept_lowres.npy")
+        self.svm_pkl_file = path + "model/grass/grass_svm_model_lowres.pkl"
+        with open(self.svm_pkl_file, 'rb') as file:
             self.clf = pickle.load(file)
         if (self.clf is None):
             raise Exception("Failed to load SVM model.")
@@ -168,7 +169,7 @@ class LitterDetector(object):
 Takes in a list of points (x, y) that returns a subset of that list such that no
 two points are within 5px of each other.
 '''
-def filter_points(contours):
+def filter_points(contours, ld):
     filtered = []
     to_remove = [False for _ in contours]
     for i in range(len(contours)):
@@ -193,13 +194,29 @@ def filter_and_save_results(results):
     with open('results.json', 'w') as results_file:
         json.dump(results, results_file)
 
+'''
+This function is externally accessible to be run by the litter detection pipeline
+'''
+def run_dynamic_color_thresh(file_path, sureclean_server_path): 
+    file = file_path.split('/')[-1].split('.')[0]
+    ld = LitterDetector(sureclean_server_path+'/litter-detection/')
+    results = dict()
+    (img_bgr, img_rgb, img_hsv) = ld.read_image(file_path)
+    thresh = ld.compute_thresholds(img_hsv)
+    (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
+    # Filter points to remove duplicates
+    results[file] = filter_points(contours,ld)
+    output = ld.visualize_litter_locations(img_bgr, results[file])
+    cv2.imwrite(sureclean_server_path+'/litter-detection/'+"images/output/"+file+"_result.jpg", output)
+    return results
+
 
 if __name__ == "__main__":
     idx = 1
-    fileNames = os.listdir("images/input/")
+    file_names = os.listdir("images/input/")
     ld = LitterDetector()
     results = dict()
-    for file in fileNames:
+    for file in file_names:
         if (file != ".DS_Store" and file != ".gitignore"):
             debug_file = file[:-4]
             print("Processing file %d of %d" %(idx, len(fileNames)-2))
@@ -208,7 +225,7 @@ if __name__ == "__main__":
             thresh = ld.compute_thresholds(img_hsv)
             (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
             # Filter points to remove duplicates
-            results[file] = filter_points(contours)
+            results[file] = filter_points(contours,ld)
             output = ld.visualize_litter_locations(img_bgr, results[file])
             cv2.imwrite("images/output/"+file[:-4]+"_result.jpg", output)
             idx += 1
