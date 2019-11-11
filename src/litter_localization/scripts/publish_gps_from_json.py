@@ -32,11 +32,23 @@ def publish_gps_from_json(move_ugv = False):
         print(data)
         # If bag covariance is larger than smallest covariance, skip bag
         try:
-            odom = server_gps_goal(data["GPS"]["Latitude"],data["GPS"]["Longitude"])
+            odom = server_gps_goal(data["GPS"]["Latitude"],data["GPS"]["Longitude"],False)
             print( "Latitude: ",data["GPS"]["Latitude"], " Longitude: ",data["GPS"]["Longitude"])
             print("Odometry X: ", odom.odomX, " Odometry Y: ", odom.odomY)
         except rospy.ServiceException as e:
             print(e)
+
+    # Wait for next message on topic
+    gps_data_msg = rospy.wait_for_message(params["ugv_gps_topic"], NavSatFix)
+    try:
+        odom = server_gps_goal(gps_data_msg.latitude,gps_data_msg.longitude,True)
+        print( "Base Latitude: ",gps_data_msg.latitude, " Base Longitude: ",gps_data_msg.longitude)
+        print("Base Odometry X: ", odom.odomX, " Base Odometry Y: ", odom.odomY)
+    except rospy.ServiceException as e:
+        print(e)
+
+    # GPS data
+    gps_data = [[gps_data_msg.latitude,gps_data_msg.longitude]]
 
     if move_ugv:
         try:
