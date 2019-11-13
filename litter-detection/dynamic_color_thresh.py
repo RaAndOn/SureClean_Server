@@ -17,6 +17,13 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib import colors
 
+import torch
+import torchvision
+import torch.nn as nn
+import torch.nn.functional as F
+from PIL import Image
+
+import clasifier_dl
 from hog_svm import Dataset
 
 debug_thresh = False
@@ -32,7 +39,8 @@ data = Dataset(split=0.95)
 
 class LitterDetector(object):
 
-    def __init__(self):
+    def __init__(self, use_svm=True):
+        self.use_svm = use_svm
         self.h_thresh_width = 4.5
         self.s_thresh_width = 4.5
         self.blob_lower_size = 20
@@ -47,6 +55,11 @@ class LitterDetector(object):
             self.clf = pickle.load(file)
         if (self.clf is None):
             raise Exception("Failed to load SVM model.")
+        self.dl_model_file = "checkpoint_AWS"
+        checkpoint = torch.load(self.dl_model_file, map_location=torch.device("cpu"))
+        self.net = checkpoint['network']
+        self.net.load_state_dict(checkpoint['network_state_dict'])
+
     
     '''
     Reads in an image 'fileName' and outputs the image in BGR, RGB and HSV color spaces.
@@ -168,23 +181,27 @@ class LitterDetector(object):
         return image
 
 
-
-## Avinash : Visualize contours for an image passed from a rosbag
-def 
+    def sliding_window(self, img_rgb):
+        [H, W, _] = img_rgb.shape
+        
 
 if __name__ == "__main__":
     idx = 1
+    use_svm = True
     fileNames = os.listdir("svd_images/input/")
-    ld = LitterDetector()
+    ld = LitterDetector(use_svm)
     for file in fileNames:
         if (file != ".DS_Store" and file != ".gitignore"):
             debug_file = file[:-4]
             print("Processing file %d of %d" %(idx, len(fileNames)-2))
             fileName = "svd_images/input/" + file
             (img_bgr, img_rgb, img_hsv) = ld.read_image(fileName)
-            thresh = ld.compute_thresholds(img_hsv)
-            (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
-            output = ld.visualize_litter_locations(img_bgr, contours)
-            cv2.imwrite("svd_images/output/"+file[:-4]+"_result.jpg", output)
+            if (use_svm):
+                thresh = ld.compute_thresholds(img_hsv)
+                (img_bin, contours) = ld.threshold_image(img_hsv, thresh)
+                output = ld.visualize_litter_locations(img_bgr, contours)
+                cv2.imwrite("svd_images/output/"+file[:-4]+"_result.jpg", output)
+            else:
+                ld.sliding_window(img_rgb)
             idx += 1
     print("Done")
