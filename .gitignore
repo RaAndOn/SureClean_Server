@@ -8,3 +8,6 @@ devel/
 # File Extensions
 .vscode
 .DS_Store
+dataset/
+*.jpg
+*.JPG
