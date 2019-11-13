@@ -1,13 +1,25 @@
 # Folders
 __pycache__
+<<<<<<< HEAD
 ros_bags*
 build/
 devel/
 .catkin_workspace
+=======
+build/
+devel/
+.catkin_workspace
+logs/
+.catkin_tools/
+*.bag
+*.png
+*.jpg
+*.txt
+*.json
+>>>>>>> develop
 
 # File Extensions
 .vscode
 .DS_Store
-dataset/
-*.jpg
-*.JPG
+*.pyc
+src/litter_localization/scripts/*.pyc
