@@ -1,11 +1,9 @@
 # Folders
 __pycache__
-<<<<<<< HEAD
 ros_bags*
 build/
 devel/
 .catkin_workspace
-=======
 build/
 devel/
 .catkin_workspace
@@ -16,7 +14,6 @@ logs/
 *.jpg
 *.txt
 *.json
->>>>>>> develop
 
 # File Extensions
 .vscode
