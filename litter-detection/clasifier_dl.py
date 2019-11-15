@@ -8,7 +8,6 @@ import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
-import dill
 
 import sys
 sys.path.insert(0, os.getcwd()+'/litter-detection/classifier_dl.py')
