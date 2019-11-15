@@ -2,19 +2,23 @@
 #**** 		Import Modules		 ****#
 #************************************#
 
+import os
 import torch
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
+import dill
 
+import sys
+sys.path.insert(0, os.getcwd()+'/litter-detection/classifier_dl.py')
+print sys.path[0]
 
 #************************************#
 #****   Global Variables		 ****#
 #************************************#
 
-model_file_name = 'checkpoint_AWS'
-
+model_file_name = os.path.join(os.getcwd(),'litter-detection/checkpoint_weights')
 
 #************************************#
 #**** 		MobileNet v2 		 ****#
@@ -40,7 +44,8 @@ class BasicBlock(nn.Module):
 #------  CNN Model with Residual Block #------  
 
 class Network(nn.Module):
-    def __init__(self, num_feats, hidden_sizes, num_classes, strides, repeatitions, feat_dim=10):
+    def __init__(self, num_feats = 3, hidden_sizes = [32, 16, 64, 256, 1280],\
+                 num_classes = 2, strides = [1, 2, 2, 1, 1], repeatitions = [1, 4, 3, 2], feat_dim=10):
         super(Network, self).__init__()
         self.hidden_sizes = [num_feats] + hidden_sizes + [num_classes]
         self.repeatitions = [1] + repeatitions
@@ -104,28 +109,37 @@ def classify_image(net, image):
     pred_labels = pred_labels.view(-1)
     return pred_labels.tolist()[0]   
 
+
+def load_model():
+    network = Network()
+    print('Loading....' + str(model_file_name))
+    # checkpoint = torch.load(model_file_name,map_location=torch.device('cpu'))
+    # network = checkpoint['network']
+    network.load_state_dict(torch.load(model_file_name))#checkpoint['network_state_dict'])
+    # optimizer_label = checkpoint['optimizer_label']
+    # optimizer_label.load_state_dict(checkpoint['optimizer_label_state_dict'])
+    # optimizer_closs = checkpoint['optimizer_closs']
+    # optimizer_closs.load_state_dict(checkpoint['optimizer_closs_state_dict'])
+    network.eval()
+    print('Success!! Loaded the pretrained model')
+    return network
+
+
 #************************************#
 #****       Test Case            ****#
 #************************************#
-def test_cases(file_name):
+def test_cases(network, file_name):
     img = Image.open(file_name)
     img = torchvision.transforms.ToTensor()(img)
-    print('File:',file_name,' | Class:',classify_image(network, img))
+    print 'File:' + file_name + '| Class:' + str(classify_image(network, img))
 
+if __name__ == '__main__':
+    network = load_model()
 
-if __name__ == "__main__":
-    print('Loading....',model_file_name)
-    checkpoint = torch.load(model_file_name,map_location=torch.device('cpu'))
-    network = checkpoint['network']
-    network.load_state_dict(checkpoint['network_state_dict'])
-    optimizer_label = checkpoint['optimizer_label']
-    optimizer_label.load_state_dict(checkpoint['optimizer_label_state_dict'])
-    optimizer_closs = checkpoint['optimizer_closs']
-    optimizer_closs.load_state_dict(checkpoint['optimizer_closs_state_dict'])
-    network.eval()
+    torch.save(network.state_dict(),'checkpoint_weights')
 
-# if __name__ == '__main__':
-#     test_cases('neg1.jpg')
-#     test_cases('pos1.jpg')
-#     test_cases('pos2.jpg')
+    relative_path = os.getcwd() + '/litter-detection/'
+    test_cases(network,relative_path+'neg1.jpg')
+    test_cases(network,relative_path+'pos1.jpg')
+    test_cases(network,relative_path+'pos2.jpg')
 

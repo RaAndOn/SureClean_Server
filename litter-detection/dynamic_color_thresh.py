@@ -24,8 +24,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 
-import clasifier_dl
+from clasifier_dl import *
 from hog_svm import Dataset
+
+import sys
+sys.path.insert(0, os.getcwd()+'/litter-detection')
+# print sys.path[0]
 
 debug_thresh = False
 debug_file = ""
@@ -40,6 +44,7 @@ data = Dataset(split=0.95)
 class LitterDetector(object):
 
     def __init__(self, path="", use_svm=True):
+        self.net = load_model()#'/home/avinashhemaeshwararaju/MyComputer/CMU/GitRepos/SureClean/SureClean_Server/litter-detection/checkpoint_AWS')
         self.use_svm = use_svm
         self.h_thresh_width = 4.5
         self.s_thresh_width = 4.5
@@ -55,15 +60,17 @@ class LitterDetector(object):
             self.clf = pickle.load(file)
         if (self.clf is None):
             raise Exception("Failed to load SVM model.")
-        self.dl_model_file = "checkpoint_AWS"
-        checkpoint = torch.load(self.dl_model_file, map_location=torch.device("cpu"))
-        self.net = checkpoint['network']
-        self.net.load_state_dict(checkpoint['network_state_dict'])
+        
+        # # self.dl_model_file = os.path.join(os.getcwd(),'litter-detection/checkpoint_AWS')
+        # checkpoint = torch.load(self.dl_model_file, map_location=torch.device("cpu"))
+        # self.net = checkpoint['network']
+        # self.net.load_state_dict(checkpoint['network_state_dict'])
 
     
     '''
     Reads in an image 'fileName' and outputs the image in BGR, RGB and HSV color spaces.
     '''
+
     def read_image(self, fileName):
         img_bgr = cv2.imread(fileName)
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
@@ -184,7 +191,7 @@ class LitterDetector(object):
         for startRow in range(0, H, stride):
             for startCol in range(0, W, stride):
                 patch = img_rgb[startRow:startRow+self.patch_size, startCol:startCol+self.patch_size, :]
-                is_litter = clasifier_dl.classify_image(self.net, patch)
+                lasifier_dl.classify_image(self.net, patch)
                 if (is_litter):
                     litter_locs.append((startRow+int(stride/2), startCol+int(stride/2)))
         return litter_locs
@@ -278,3 +285,9 @@ def run_dynamic_color_thresh(file_path, sureclean_server_path):
 #             idx += 1
 #     filter_and_save_results(results)
 #     print("Done")
+
+
+
+# Avinash : Test
+# if __name__ == '__main__':
+#    a =  LitterDetector()

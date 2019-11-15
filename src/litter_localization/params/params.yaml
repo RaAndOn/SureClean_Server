@@ -2,5 +2,6 @@ gps_topic: /rtk_gps
 ugv_gps_topic: /sureclean/ugv_1/rtk_gps
 # All paths are relative to the root folder SureClean_Server
 gps_json_path: ros_bags/litter_gps.json
-ros_bag_path: ros_bags/uav_images
+#ros_bag_path: ros_bags/2019_11_13-FieldTest
+ros_bag_path: ros_bags/2019_11_14-FieldTest
 extracted_data_path: ros_bags/flight_data.json
