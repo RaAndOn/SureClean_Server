@@ -91,6 +91,6 @@ if __name__ == '__main__':
 		if len(sys.argv) != 3:
 			print("Usage: litter_pipeline.py litter_count slack")
 		else:
-			litter_pipeline(sys.argv[1],sys.argv[2])
+			litter_pipeline(int(sys.argv[1]),int(sys.argv[2]))
 	except rospy.ROSInterruptException:
 		pass
