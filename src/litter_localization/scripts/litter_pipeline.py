@@ -26,7 +26,7 @@ use_biasing = True     # whether to use the mean of clusteirng and best bag
 
 debug_clusters = True     # visualizes silhouette scores for different Ks
 debug_silhouette = False   # visualizes points and cluster means
-debug_comparison = True   # visualizes clustering vs. best_bag approach
+debug_comparison = False   # visualizes clustering vs. best_bag approach
 
 hardcode_num_clusters = False
 hardcoded_num_clusters = 5
@@ -98,7 +98,8 @@ def filter_points(X):
 
 
 def clustering(filtered_X, num_clusters, slack):
-    cluster_centers, labels = get_cluster_centers(filtered_X, num_clusters, slack)
+    cluster_centers, labels = get_cluster_centers(
+        filtered_X, num_clusters, slack)
     # below is purely visualization for debugging
     if (debug_clusters):
         x0 = []
@@ -121,6 +122,8 @@ def clustering(filtered_X, num_clusters, slack):
         plt.ylim(min(min(y0), min(my))-axis_margin,
                  max(max(y0), max(my))+axis_margin)
         plt.title('Raw points (black) and cluster means (red)')
+        axes = plt.gca()
+        axes.set_aspect('equal', 'box')
         plt.show()
     return cluster_centers, labels
 
@@ -199,7 +202,6 @@ def litter_pipeline(litter_count, slack):
                 easting, northing, camera_utm[2], camera_utm[3])
             calculated_gps.append([latitude[0], longitude[0]])
 
-
         if (np.sum(lat_long_covariance) < np.sum(COV_THRESH)):
             cluster_dict[name] = calculated_gps
 
@@ -211,7 +213,6 @@ def litter_pipeline(litter_count, slack):
         for (latitude, longitude) in cluster_dict[name]:
             X.append([latitude, longitude])
     filtered_X = filter_points(X)  # removes obvious outliers
-
 
     cluster_centers, labels = clustering(filtered_X, litter_count, slack)
 
@@ -235,8 +236,10 @@ def litter_pipeline(litter_count, slack):
     for i in range(len(filtered_X)):
         label = labels[i]
         x = utm.from_latlon(filtered_X[i][0], filtered_X[i][1])
-        cc = utm.from_latlon(cluster_centers[label][0], cluster_centers[label][1])
-        dists[label] += np.linalg.norm(np.array(x[0], x[1]) - np.array(cc[0], cc[1]))
+        cc = utm.from_latlon(
+            cluster_centers[label][0], cluster_centers[label][1])
+        dists[label] += np.linalg.norm(np.array(x[0],
+                                                x[1]) - np.array(cc[0], cc[1]))
         num_points[label] += 1
 
     variances = []
@@ -272,6 +275,8 @@ def litter_pipeline(litter_count, slack):
                  max(max(best_gps_long), max(cluster_long))+axis_margin)
         plt.title(
             'Best Bag (red) vs. Clustering (blue) vs. Clustering w/ bias (green)')
+        axes = plt.gca()
+        axes.set_aspect('equal', 'box')
         plt.show()
 
     print("Variance in meters: ", variances)
