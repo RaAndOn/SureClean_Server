@@ -1,0 +1,18 @@
+# Folders
+__pycache__
+build/
+devel/
+.catkin_workspace
+logs/
+.catkin_tools/
+*.bag
+*.png
+*.jpg
+*.txt
+*.json
+
+# File Extensions
+.vscode
+.DS_Store
+*.pyc
+src/litter_localization/scripts/*.pyc
