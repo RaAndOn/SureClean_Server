@@ -21,7 +21,6 @@ import utm
 
 
 use_variable_coverage = True  # whether to use the variance for coverage size
-
 use_clustering = True  # whether to use clustering or just pick best bag
 use_biasing = True     # whether to use the mean of clusteirng and best bag
 
