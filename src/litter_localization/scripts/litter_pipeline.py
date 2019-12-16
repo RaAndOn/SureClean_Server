@@ -20,6 +20,7 @@ import sys
 import utm
 
 
+use_variable_coverage = True  # whether to use the variance for coverage size
 use_clustering = True  # whether to use clustering or just pick best bag
 use_biasing = True     # whether to use the mean of clusteirng and best bag
 
@@ -242,9 +243,16 @@ def litter_pipeline(litter_count, slack):
                                                 x[1]) - np.array(cc[0], cc[1]))
         num_points[label] += 1
 
-    variances = []
+    variances = dict()
     for i in range(len(dists)):
-        variances.append(dists[i] / num_points[i])
+        variance = dists[i] / num_points[i]
+        variances[i] = variance
+        if use_variable_coverage:
+            cluster_centers[i].append(variance)
+            new_clusters[i].append(variance)
+        if not use_variable_coverage:
+            cluster_centers[i].append(-1.0)
+            new_clusters[i].append(-1.0)
 
     if (debug_comparison):
         best_gps_lat = []
